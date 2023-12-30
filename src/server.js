@@ -20,10 +20,17 @@ const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentications');
 const ClientError = require('./exceptions/ClientError');
 
+// collaborations
+const collaborations = require('./api/collaborations');
+const CollaborationsService = require('./api/services/postgres/CollaborationsService');
+const CollaborationsValidator = require('./validator/collaborations');
+
 const init = async () => {
-    const notesService = new NotesService();
+    const collaborationsService = new CollaborationsService();
+    const notesService = new NotesService(collaborationsService);
     const userService = new UserService();
     const authenticationsService = new AuthenticationsService();
+    
 
     const server = Hapi.server({
         port: process.env.PORT,
@@ -81,10 +88,19 @@ const init = async () => {
                 validator: AuthenticationsValidator,
             },
         },
+        {
+            plugin: collaborations,
+            options: {
+                collaborationsService,
+                notesService,
+                validator: CollaborationsValidator,
+            },
+        },
     ]);
 
     server.ext('onPreResponse', (request, h) => {
         const { response } = request;
+        console.log(response);
     
         if (response instanceof Error) {
           // penanganan error secara internal
