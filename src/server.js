@@ -25,6 +25,11 @@ const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./api/services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./validator/collaborations');
 
+// exports
+const _exports = require('./api/exports');
+const ProducerService = require('./api/services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
 const init = async () => {
     const collaborationsService = new CollaborationsService();
     const notesService = new NotesService(collaborationsService);
@@ -96,11 +101,18 @@ const init = async () => {
                 validator: CollaborationsValidator,
             },
         },
+        {
+            plugin: _exports,
+            options: {
+                service: ProducerService,
+                validator: ExportsValidator,
+            },
+        },
     ]);
 
     server.ext('onPreResponse', (request, h) => {
         const { response } = request;
-        console.log(response);
+        // console.log(response);
     
         if (response instanceof Error) {
           // penanganan error secara internal
