@@ -2,39 +2,47 @@ require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
+const path = require('path');
 
 // notes
 const notes = require('./api/notes');
-const NotesService = require('./api/services/postgres/NotesService');
+const NotesService = require('./services/postgres/NotesService');
 const NotesValidator = require('./validator/notes');
 
 // users
 const users = require('./api/users');
-const UserService = require('./api/services/postgres/UserService');
+const UserService = require('./services/postgres/UserService');
 const UsersValidator = require('./validator/users');
 
 // authentications
 const authentications = require('./api/authentications');
-const AuthenticationsService = require('./api/services/postgres/AuthenticationsService');
+const AuthenticationsService = require('./services/postgres/AuthenticationsService');
 const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentications');
 const ClientError = require('./exceptions/ClientError');
 
 // collaborations
 const collaborations = require('./api/collaborations');
-const CollaborationsService = require('./api/services/postgres/CollaborationsService');
+const CollaborationsService = require('./services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./validator/collaborations');
 
 // exports
 const _exports = require('./api/exports');
-const ProducerService = require('./api/services/rabbitmq/ProducerService');
+const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportsValidator = require('./validator/exports');
+
+// uploads
+const uploads = require('./api/uploads');
+const StorageService = require('./services/storage/StorageService');
+const UploadsValidator = require('./validator/uploads');
 
 const init = async () => {
     const collaborationsService = new CollaborationsService();
     const notesService = new NotesService(collaborationsService);
     const userService = new UserService();
     const authenticationsService = new AuthenticationsService();
+    const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/images'));
     
 
     const server = Hapi.server({
@@ -50,6 +58,9 @@ const init = async () => {
     await server.register([
         {
             plugin: Jwt,
+        },
+        {
+            plugin: Inert,
         },
     ]);
 
@@ -106,6 +117,13 @@ const init = async () => {
             options: {
                 service: ProducerService,
                 validator: ExportsValidator,
+            },
+        },
+        {
+            plugin: uploads,
+            options: {
+                service: storageService,
+                validator: UploadsValidator,
             },
         },
     ]);

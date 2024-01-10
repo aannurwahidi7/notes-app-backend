@@ -1,10 +1,10 @@
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
-const { mapDBToModel } = require('../../../utils');
+const { mapDBToModel } = require('../../utils');
 
-const InvariatError = require('../../../exceptions/InvariantError');
-const AuthorizationError = require('../../../exceptions/AuthorizationError');
-const NotFoundError = require('../../../exceptions/NotFoundError');
+const InvariatError = require('../../exceptions/InvariantError');
+const AuthorizationError = require('../../exceptions/AuthorizationError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 class NotesService {
     constructor(collaborationsService) {
